@@ -4,7 +4,9 @@ const API_URL = 'http://127.0.0.1:8000';
 
 export interface Task {
   id: number;
-  text: string;
+  title: string;
+  description: string;
+  score: number;
   completed: boolean;
 }
 

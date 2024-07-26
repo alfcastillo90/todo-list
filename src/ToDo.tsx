@@ -1,15 +1,11 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { fetchTasks, createTask, updateTask, deleteTask } from './api';
-
-interface Task {
-  id: number;
-  text: string;
-  completed: boolean;
-}
+import { fetchTasks, createTask, updateTask, deleteTask, Task } from './api';
 
 const ToDo: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [task, setTask] = useState<string>('');
+  const [title, setTitle] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [score, setScore] = useState<number>(0);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [currentTaskId, setCurrentTaskId] = useState<number | null>(null);
 
@@ -27,29 +23,35 @@ const ToDo: React.FC = () => {
   }, []);
 
   const handleAddTask = async () => {
-    if (task.trim()) {
+    if (title.trim() && description.trim() && score !== null) {
       try {
-        const newTask = await createTask({ text: task, completed: false });
+        const newTask = await createTask({ title, description, score, completed: false });
         setTasks([...tasks, newTask]);
-        setTask('');
+        setTitle('');
+        setDescription('');
+        setScore(0);
       } catch (error) {
         console.error('Error adding task:', error);
       }
     }
   };
 
-  const handleEditTask = (taskId: number, text: string) => {
-    setTask(text);
+  const handleEditTask = (taskId: number, title: string, description: string, score: number) => {
+    setTitle(title);
+    setDescription(description);
+    setScore(score);
     setIsEditing(true);
     setCurrentTaskId(taskId);
   };
 
   const handleUpdateTask = async () => {
-    if (task.trim() && currentTaskId !== null) {
+    if (title.trim() && description.trim() && score !== null && currentTaskId !== null) {
       try {
-        const updatedTask = await updateTask(currentTaskId, { text: task, completed: false });
+        const updatedTask = await updateTask(currentTaskId, { title, description, score, completed: false });
         setTasks(tasks.map(t => (t.id === currentTaskId ? updatedTask : t)));
-        setTask('');
+        setTitle('');
+        setDescription('');
+        setScore(0);
         setIsEditing(false);
         setCurrentTaskId(null);
       } catch (error) {
@@ -79,10 +81,23 @@ const ToDo: React.FC = () => {
         <form onSubmit={handleSubmit} className="mb-4">
           <input
             type="text"
-            value={task}
-            onChange={(e) => setTask(e.target.value)}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             className="border p-2 rounded w-full"
-            placeholder="Add a new task"
+            placeholder="Title"
+          />
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="border p-2 rounded w-full mt-2"
+            placeholder="Description"
+          ></textarea>
+          <input
+            type="number"
+            value={score}
+            onChange={(e) => setScore(Number(e.target.value))}
+            className="border p-2 rounded w-full mt-2"
+            placeholder="Score"
           />
           <button
             type="submit"
@@ -99,12 +114,14 @@ const ToDo: React.FC = () => {
                 task.completed ? 'line-through' : ''
               }`}
             >
-              <span onClick={() => handleEditTask(task.id, task.text)}>
-                {task.text}
-              </span>
+              <div onClick={() => handleEditTask(task.id, task.title, task.description, task.score)}>
+                <h3>{task.title}</h3>
+                <p>{task.description}</p>
+                <p>Score: {task.score}</p>
+              </div>
               <div>
                 <button
-                  onClick={() => handleEditTask(task.id, task.text)}
+                  onClick={() => handleEditTask(task.id, task.title, task.description, task.score)}
                   className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
                 >
                   Edit
