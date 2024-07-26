@@ -48,3 +48,18 @@ export const deleteTask = async (taskId: number): Promise<void> => {
     throw error;
   }
 };
+
+export const toggleTaskCompletion = async (task: Task): Promise<Task> => {
+  try {
+    const response = await axios.put(`${API_URL}/tasks/${task.id}`, {
+      title: task.title,
+      description: task.description,
+      score: task.score,
+      completed: !task.completed
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error toggling task completion:', error);
+    throw error;
+  }
+};

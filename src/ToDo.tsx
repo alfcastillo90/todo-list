@@ -1,6 +1,15 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { fetchTasks, createTask, updateTask, deleteTask, Task } from './api';
+import { Task } from './api/api';
 import ValidationErrorModal from './components/ValidationErrorModal';
+import {
+  handleFetchTasks,
+  handleAddTask,
+  handleEditTask,
+  handleUpdateTask,
+  handleDeleteTask,
+  handleToggleCompletion,
+  handleSubmit
+} from './handlers/handlers';
 
 const ToDo: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -12,99 +21,32 @@ const ToDo: React.FC = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
 
   useEffect(() => {
-    const getTasks = async () => {
-      try {
-        const tasks = await fetchTasks();
-        setTasks(tasks);
-      } catch (error) {
-        console.error('Error fetching tasks:', error);
-      }
-    };
-
-    getTasks();
+    handleFetchTasks(setTasks);
   }, []);
 
-  const handleAddTask = async () => {
-    if (title.trim() && description.trim() && score !== null) {
-      try {
-        const newTask = await createTask({ title, description, score, completed: false });
-        setTasks([...tasks, newTask]);
-        setTitle('');
-        setDescription('');
-        setScore(0);
-      } catch (error) {
-        console.error('Error adding task:', error);
-      }
-    } else {
-      setShowModal(true);
-    }
-  };
-
-  const handleEditTask = (taskId: number, title: string, description: string, score: number) => {
-    setTitle(title);
-    setDescription(description);
-    setScore(score);
-    setIsEditing(true);
-    setCurrentTaskId(taskId);
-  };
-
-  const handleUpdateTask = async () => {
-    if (title.trim() && description.trim() && score !== null && currentTaskId !== null) {
-      try {
-        const updatedTask = await updateTask(currentTaskId, { title, description, score, completed: false });
-        setTasks(tasks.map(t => (t.id === currentTaskId ? updatedTask : t)));
-        setTitle('');
-        setDescription('');
-        setScore(0);
-        setIsEditing(false);
-        setCurrentTaskId(null);
-      } catch (error) {
-        console.error('Error updating task:', error);
-      }
-    } else {
-      setShowModal(true);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: number) => {
-    try {
-      await deleteTask(taskId);
-      setTasks(tasks.filter(t => t.id !== taskId));
-    } catch (error) {
-      console.error('Error deleting task:', error);
-    }
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    isEditing ? handleUpdateTask() : handleAddTask();
-  };
-
-  const handleCloseModal = () => setShowModal(false);
-
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="bg-white p-6 rounded shadow-md w-full max-w-3xl">
         <h1 className="text-2xl font-bold mb-4">To-Do List</h1>
-        <form onSubmit={handleSubmit} className="mb-4">
+        <form onSubmit={(e) => handleSubmit(e, isEditing, () => handleUpdateTask(currentTaskId, title, description, score, setTasks, setTitle, setDescription, setScore, setIsEditing, setCurrentTaskId, setShowModal), () => handleAddTask(title, description, score, setTasks, setTitle, setDescription, setScore, setShowModal))} className="mb-4">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="border p-2 rounded w-full"
+            className="border p-2 rounded w-full mb-2"
             placeholder="Title"
           />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="border p-2 rounded w-full mt-2"
+            className="border p-2 rounded w-full mb-2"
             placeholder="Description"
           ></textarea>
           <input
             type="number"
             value={score}
             onChange={(e) => setScore(Number(e.target.value))}
-            className="border p-2 rounded w-full mt-2"
+            className="border p-2 rounded w-full mb-2"
             placeholder="Score"
           />
           <button
@@ -114,28 +56,37 @@ const ToDo: React.FC = () => {
             {isEditing ? 'Update Task' : 'Add Task'}
           </button>
         </form>
-        <ul>
+        <ul className="space-y-4">
           {tasks.map((task) => (
             <li
               key={task.id}
-              className={`p-2 border-b flex justify-between items-center ${
-                task.completed ? 'line-through' : ''
+              className={`p-4 border rounded flex justify-between items-center ${
+                task.completed ? 'bg-green-100' : 'bg-red-100'
               }`}
             >
-              <div onClick={() => handleEditTask(task.id, task.title, task.description, task.score)}>
-                <h3>{task.title}</h3>
-                <p>{task.description}</p>
-                <p>Score: {task.score}</p>
+              <div className="flex-1 mr-4" onClick={() => handleEditTask(task.id, task.title, task.description, task.score, task.completed, setTitle, setDescription, setScore, setIsEditing, setCurrentTaskId)}>
+                <h3 className="font-semibold">{task.title}</h3>
+                <p className="text-sm">{task.description}</p>
+                <p className="text-sm">Score: {task.score}</p>
+                <p className={`text-sm ${task.completed ? 'text-green-600' : 'text-red-600'}`}>
+                  {task.completed ? 'Completed' : 'Incomplete'}
+                </p>
               </div>
-              <div>
+              <div className="flex space-x-2">
                 <button
-                  onClick={() => handleEditTask(task.id, task.title, task.description, task.score)}
-                  className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
+                  onClick={() => handleEditTask(task.id, task.title, task.description, task.score, task.completed, setTitle, setDescription, setScore, setIsEditing, setCurrentTaskId)}
+                  className="bg-yellow-500 text-white px-2 py-1 rounded"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDeleteTask(task.id)}
+                  onClick={() => handleToggleCompletion(task, setTasks)}
+                  className={`px-2 py-1 rounded ${task.completed ? 'bg-green-500' : 'bg-gray-500'} text-white`}
+                >
+                  {task.completed ? 'Mark as Incomplete' : 'Mark as Complete'}
+                </button>
+                <button
+                  onClick={() => handleDeleteTask(task.id, setTasks)}
                   className="bg-red-500 text-white px-2 py-1 rounded"
                 >
                   Delete
@@ -145,7 +96,7 @@ const ToDo: React.FC = () => {
           ))}
         </ul>
       </div>
-      <ValidationErrorModal show={showModal} handleClose={handleCloseModal} />
+      <ValidationErrorModal show={showModal} handleClose={() => setShowModal(false)} />
     </div>
   );
 };
