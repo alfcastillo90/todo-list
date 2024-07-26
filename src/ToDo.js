@@ -3,12 +3,29 @@ import React, { useState } from 'react';
 const ToDo = () => {
   const [tasks, setTasks] = useState([]);
   const [task, setTask] = useState('');
-
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(null);
+  
   const addTask = () => {
     if (task.trim()) {
-      setTasks([...tasks, { text: task, completed: false }]);
+      if (isEditing) {
+        const updatedTasks = tasks.map((t, index) =>
+          index === currentTaskIndex ? { ...t, text: task } : t
+        );
+        setTasks(updatedTasks);
+        setIsEditing(false);
+        setCurrentTaskIndex(null);
+      } else {
+        setTasks([...tasks, { text: task, completed: false }]);
+      }
       setTask('');
     }
+  };
+
+  const editTask = (index) => {
+    setTask(tasks[index].text);
+    setIsEditing(true);
+    setCurrentTaskIndex(index);
   };
 
   const toggleTaskCompletion = (index) => {
@@ -20,6 +37,10 @@ const ToDo = () => {
   const deleteTask = (index) => {
     const newTasks = tasks.filter((_, i) => i !== index);
     setTasks(newTasks);
+    if (isEditing && index === currentTaskIndex) {
+      setIsEditing(false);
+      setTask('');
+    }
   };
 
   return (
@@ -38,7 +59,7 @@ const ToDo = () => {
             onClick={addTask}
             className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
           >
-            Add Task
+            {isEditing ? 'Update Task' : 'Add Task'}
           </button>
         </div>
         <ul>
@@ -52,12 +73,20 @@ const ToDo = () => {
               <span onClick={() => toggleTaskCompletion(index)}>
                 {task.text}
               </span>
-              <button
-                onClick={() => deleteTask(index)}
-                className="bg-red-500 text-white px-2 py-1 rounded"
-              >
-                Delete
-              </button>
+              <div>
+                <button
+                  onClick={() => editTask(index)}
+                  className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteTask(index)}
+                  className="bg-red-500 text-white px-2 py-1 rounded"
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>
