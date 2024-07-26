@@ -1,5 +1,6 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { fetchTasks, createTask, updateTask, deleteTask, Task } from './api';
+import ValidationErrorModal from './components/ValidationErrorModal';
 
 const ToDo: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -8,6 +9,7 @@ const ToDo: React.FC = () => {
   const [score, setScore] = useState<number>(0);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [currentTaskId, setCurrentTaskId] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   useEffect(() => {
     const getTasks = async () => {
@@ -33,6 +35,8 @@ const ToDo: React.FC = () => {
       } catch (error) {
         console.error('Error adding task:', error);
       }
+    } else {
+      setShowModal(true);
     }
   };
 
@@ -57,6 +61,8 @@ const ToDo: React.FC = () => {
       } catch (error) {
         console.error('Error updating task:', error);
       }
+    } else {
+      setShowModal(true);
     }
   };
 
@@ -73,6 +79,8 @@ const ToDo: React.FC = () => {
     e.preventDefault();
     isEditing ? handleUpdateTask() : handleAddTask();
   };
+
+  const handleCloseModal = () => setShowModal(false);
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -137,6 +145,7 @@ const ToDo: React.FC = () => {
           ))}
         </ul>
       </div>
+      <ValidationErrorModal show={showModal} handleClose={handleCloseModal} />
     </div>
   );
 };
