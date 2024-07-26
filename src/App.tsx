@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.css';
-import ToDo from './ToDo';
+import ToDo from './pages/ToDo';
 
 const App: React.FC = () => {
   return (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, FormEvent } from 'react';
-import { Task } from './api/api';
-import ValidationErrorModal from './components/ValidationErrorModal';
-import ConfirmDeleteModal from './components/ConfirmDeleteModal';
+import { Task } from '../api/api';
+import ValidationErrorModal from '../components/ValidationErrorModal';
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal';
 import {
   handleFetchTasks,
   handleAddTask,
@@ -10,7 +10,7 @@ import {
   handleDeleteTask,
   handleToggleCompletion,
   handleSubmit
-} from './handlers/handlers';
+} from '../handlers/handlers';
 
 const ToDo: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
