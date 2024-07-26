@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import { fetchTasks, createTask, updateTask, deleteTask } from './api';
 
-const ToDo = () => {
-  const [tasks, setTasks] = useState([]);
-  const [task, setTask] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentTaskId, setCurrentTaskId] = useState(null);
+interface Task {
+  id: number;
+  text: string;
+  completed: boolean;
+}
+
+const ToDo: React.FC = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [task, setTask] = useState<string>('');
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [currentTaskId, setCurrentTaskId] = useState<number | null>(null);
 
   useEffect(() => {
     const getTasks = async () => {
@@ -32,14 +38,14 @@ const ToDo = () => {
     }
   };
 
-  const handleEditTask = (taskId, text) => {
+  const handleEditTask = (taskId: number, text: string) => {
     setTask(text);
     setIsEditing(true);
     setCurrentTaskId(taskId);
   };
 
   const handleUpdateTask = async () => {
-    if (task.trim()) {
+    if (task.trim() && currentTaskId !== null) {
       try {
         const updatedTask = await updateTask(currentTaskId, { text: task, completed: false });
         setTasks(tasks.map(t => (t.id === currentTaskId ? updatedTask : t)));
@@ -52,7 +58,7 @@ const ToDo = () => {
     }
   };
 
-  const handleDeleteTask = async (taskId) => {
+  const handleDeleteTask = async (taskId: number) => {
     try {
       await deleteTask(taskId);
       setTasks(tasks.filter(t => t.id !== taskId));
@@ -61,7 +67,7 @@ const ToDo = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     isEditing ? handleUpdateTask() : handleAddTask();
   };

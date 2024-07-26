@@ -2,7 +2,13 @@ import axios from 'axios';
 
 const API_URL = 'http://127.0.0.1:8000';
 
-export const fetchTasks = async () => {
+export interface Task {
+  id: number;
+  text: string;
+  completed: boolean;
+}
+
+export const fetchTasks = async (): Promise<Task[]> => {
   try {
     const response = await axios.get(`${API_URL}/tasks/`);
     return response.data;
@@ -12,7 +18,7 @@ export const fetchTasks = async () => {
   }
 };
 
-export const createTask = async (task) => {
+export const createTask = async (task: Omit<Task, 'id'>): Promise<Task> => {
   try {
     const response = await axios.post(`${API_URL}/tasks/`, task);
     return response.data;
@@ -22,7 +28,7 @@ export const createTask = async (task) => {
   }
 };
 
-export const updateTask = async (taskId, task) => {
+export const updateTask = async (taskId: number, task: Omit<Task, 'id'>): Promise<Task> => {
   try {
     const response = await axios.put(`${API_URL}/tasks/${taskId}`, task);
     return response.data;
@@ -32,10 +38,9 @@ export const updateTask = async (taskId, task) => {
   }
 };
 
-export const deleteTask = async (taskId) => {
+export const deleteTask = async (taskId: number): Promise<void> => {
   try {
-    const response = await axios.delete(`${API_URL}/tasks/${taskId}`);
-    return response.data;
+    await axios.delete(`${API_URL}/tasks/${taskId}`);
   } catch (error) {
     console.error('Error deleting task:', error);
     throw error;
